@@ -70,9 +70,9 @@ void loop() {
   // Match the request
   int val;
   if (req.indexOf(F("/gpio/0")) != -1) {
-    val = 0;
-  } else if (req.indexOf(F("/gpio/1")) != -1) {
     val = 1;
+  } else if (req.indexOf(F("/gpio/1")) != -1) {
+    val = 0;
   } else {
     Serial.println(F("invalid request"));
     val = digitalRead(LED_BUILTIN);
