@@ -9,13 +9,17 @@
 
 #include <ESP8266WiFi.h>
 
-#ifndef STASSID
-#define STASSID "net-mobile"
-#define STAPSK  "12345678"
-#endif
+//needed for library
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include "WiFiManager.h"          //https://github.com/tzapu/WiFiManager
 
-const char* ssid = STASSID;
-const char* password = STAPSK;
+void configModeCallback (WiFiManager *myWiFiManager) {
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+  //if you used auto generated SSID, print it
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+}
 
 // Create an instance of the server
 // specify the port to listen on as an argument
@@ -28,19 +32,24 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, 0);
 
-  // Connect to WiFi network
-  Serial.println();
-  Serial.println();
-  Serial.print(F("Connecting to "));
-  Serial.println(ssid);
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+ WiFiManager wifiManager;
+  //reset settings - for testing
+  //wifiManager.resetSettings();
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(F("."));
-  }
+  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+  wifiManager.setAPCallback(configModeCallback);
+
+  //fetches ssid and pass and tries to connect
+  //if it does not connect it starts an access point with the specified name
+  //here  "AutoConnectAP"
+  //and goes into a blocking loop awaiting configuration
+  if(!wifiManager.autoConnect()) {
+    Serial.println("failed to connect and hit timeout");
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
+    delay(1000);
+  } 
   Serial.println();
   Serial.println(F("WiFi connected"));
 
